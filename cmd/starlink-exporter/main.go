@@ -109,7 +109,7 @@ var (
 
 	dishAddress    = "192.168.100.1:9200"
 	wifiAddress    = "192.168.1.1:9000"
-	metricsAddress = "127.0.0.1:2112"
+	metricsAddress = "0.0.0.0:2112"
 
 	statusInterval  = time.Duration(4) * time.Minute
 	pingInterval    = time.Duration(1) * time.Minute
