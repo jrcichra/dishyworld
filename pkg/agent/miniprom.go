@@ -3,6 +3,8 @@ package agent
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/go-kit/kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/promlog"
@@ -12,9 +14,6 @@ import (
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
 	"github.com/prometheus/prometheus/tsdb"
-	"net/url"
-	"os"
-	"strings"
 
 	_ "embed"
 	"time"
@@ -38,27 +37,7 @@ func NewMiniProm(tsdbDir string, addr string, dishId string) (*MiniProm, error) 
 	ll.Set("warn")
 	logger := promlog.New(&promlog.Config{Level: ll})
 
-	user := ""
-	pass := ""
-	remote_url := defaultURL
-
-	if os.Getenv("REMOTE") != "" {
-		remote_url = os.Getenv("REMOTE")
-	}
-	remote_url = strings.TrimSpace(remote_url)
-
-	u, err := url.ParseRequestURI(remote_url)
-	if err != nil {
-		fmt.Printf("[agent] unable to parse URL (%s), %s\n", remote_url, err)
-		return nil, err
-	}
-
-	remote_url = fmt.Sprintf("%s", u)
-	user = u.User.Username()
-	pass, _ = u.User.Password()
-
-	fmt.Printf("[agent] using remote %s\n", u.Redacted())
-	s := fmt.Sprintf(configTemplate, dishId, addr, remote_url, user, pass)
+	s := fmt.Sprintf(configTemplate, dishId, addr, "", "", "")
 	cfg, err := config.Load(s)
 	if err != nil {
 		return nil, err
