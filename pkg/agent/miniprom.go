@@ -38,6 +38,7 @@ func NewMiniProm(tsdbDir string, addr string, dishId string) (*MiniProm, error) 
 	logger := promlog.New(&promlog.Config{Level: ll})
 
 	s := fmt.Sprintf(configTemplate, dishId)
+	fmt.Println(s)
 	cfg, err := config.Load(s)
 	if err != nil {
 		return nil, err
