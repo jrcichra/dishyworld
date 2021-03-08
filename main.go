@@ -94,7 +94,7 @@ var (
 
 	statusInterval  = time.Duration(4) * time.Minute
 	pingInterval    = time.Duration(1) * time.Minute
-	historyInterval = time.Duration(2) * time.Minute
+	historyInterval = time.Duration(10) * time.Second
 	retryInterval   = time.Duration(2) * time.Second
 )
 
