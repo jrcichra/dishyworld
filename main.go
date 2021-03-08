@@ -80,12 +80,12 @@ var (
 	dishWedgeFractionObstructed = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "dish_wedge_fraction_obstructed",
 	},
-		[]string{"wedge"},
+		[]string{"degrees"},
 	)
 	dishWedgeAbsFractionObstructed = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "dish_wedge_abs_fraction_obstructed",
 	},
-		[]string{"wedge"},
+		[]string{"degrees"},
 	)
 
 	dishAddress    = "192.168.100.1:9200"
