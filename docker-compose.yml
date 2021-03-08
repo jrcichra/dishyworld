@@ -1,0 +1,16 @@
+version: "3"
+services:
+  prometheus:
+    image: prom/prometheus:v2.25.0
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus_data/:/prometheus_data/
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=99999d"
+    ports:
+      - 9090:9090
+  starlink-exporter:
+    build: .
+    image: jrcichra/starlink-exporter
