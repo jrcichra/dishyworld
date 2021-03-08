@@ -319,17 +319,21 @@ func recordDishMetrics() {
 			dishFractionObstructed.Set(float64(obs.FractionObstructed))
 			dishLast24hObstructedS.Set(float64(obs.Last_24HObstructedS))
 			dishValidS.Set(float64(obs.ValidS))
-			for i, v := range obs.WedgeFractionObstructed {
+			degrees := 0
+			for _, v := range obs.WedgeFractionObstructed {
 				l := prometheus.Labels{
-					"wedge": strconv.Itoa(i),
+					"degrees": strconv.Itoa(degrees),
 				}
+				degrees += 30
 				dishWedgeFractionObstructed.With(l).Set(float64(v))
 
 			}
-			for i, v := range obs.WedgeAbsFractionObstructed {
+			degrees = 0
+			for _, v := range obs.WedgeAbsFractionObstructed {
 				l := prometheus.Labels{
-					"wedge": strconv.Itoa(i),
+					"degrees": strconv.Itoa(degrees),
 				}
+				degrees += 30
 				dishWedgeAbsFractionObstructed.With(l).Set(float64(v))
 			}
 
