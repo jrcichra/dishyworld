@@ -398,7 +398,6 @@ func main() {
 	}
 	recordPingMetrics()
 	recordHistoryMetrics()
-	// recordSpeedTest()
 
 	fmt.Printf("[starlink-exporter] started metrics on http://%s/metrics\n", metricsAddress)
 	http.Handle("/metrics", promhttp.Handler())
