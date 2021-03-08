@@ -7,39 +7,20 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"regexp"
 	"strconv"
 	"sync"
 	"time"
 
 	"google.golang.org/grpc"
 
-	"github.com/mmcloughlin/geohash"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/showwin/speedtest-go/speedtest"
-	"github.com/starlink-community/dishyworld/pkg/agent"
 	pb "github.com/starlink-community/starlink-grpc-go/pkg/spacex.com/api/device"
 )
 
 var (
-	speedTestLatency = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "speedtest_latency",
-	},
-		[]string{"geohash", "server_name"},
-	)
-	speedTestUp = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "speedtest_up",
-	},
-		[]string{"geohash", "server_name"},
-	)
-	speedTestDown = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "speedtest_down",
-	},
-		[]string{"geohash", "server_name"},
-	)
 	wifiDeviceInfo = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "wifi_device_info",
 	},
@@ -401,70 +382,16 @@ func checkDish() (string, bool, error) {
 	return info.GetId(), true, nil
 }
 
-func recordSpeedTest() {
-	go func() {
-		for {
-			user, err := speedtest.FetchUserInfo()
-			if err != nil {
-				fmt.Println("[speedtest] disabling speedtest", err)
-				return
-			}
-			r := regexp.MustCompile("(?i)starlink")
-			if !r.MatchString(user.Isp) {
-				fmt.Println("[speedtest] disabling speedtest, got ISP:", user.Isp)
-				return
-			}
-
-			serverList, err := speedtest.FetchServerList(user)
-			if err != nil {
-				fmt.Println("[speedtest] disabling speedtest", err)
-				return
-			}
-			targets, err := serverList.FindServer([]int{})
-			if err != nil {
-				fmt.Println("[speedtest] disabling speedtest", err)
-				return
-			}
-
-			for _, s := range targets {
-				s.PingTest()
-				s.DownloadTest(false)
-				s.UploadTest(false)
-
-				lat, _ := strconv.ParseFloat(user.Lat, 64)
-				lon, _ := strconv.ParseFloat(user.Lon, 64)
-				l := prometheus.Labels{
-					"geohash":     geohash.Encode(lat, lon),
-					"server_name": s.Name,
-				}
-				speedTestLatency.With(l).Set(float64(s.Latency.Milliseconds()))
-				speedTestUp.With(l).Set(s.ULSpeed)
-				speedTestDown.With(l).Set(s.DLSpeed)
-			}
-			time.Sleep(1 * time.Hour)
-		}
-	}()
-}
-
 func main() {
 
 	_, wifiOk, err := checkWifi()
 	if err != nil {
 		fmt.Println("[wifi] disabling wifi checks")
 	}
-	dishId, _, err := checkDish()
 	if err != nil {
 		fmt.Println("[dish] cannot run without dish, exiting... are you running from the starlink network?")
 		os.Exit(1)
 	}
-	m, err := agent.NewMiniProm("data", metricsAddress, dishId)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	m.Start()
-	fmt.Println("[starlink-exporter] your dish id:", dishId)
-
 	recordDishMetrics()
 	if wifiOk {
 		recordWifiMetrics()
@@ -473,7 +400,7 @@ func main() {
 	recordHistoryMetrics()
 	// recordSpeedTest()
 
-	fmt.Printf("[starlink-exporter] started metrics on %s/metrics\n", metricsAddress)
+	fmt.Printf("[starlink-exporter] started metrics on http://%s/metrics\n", metricsAddress)
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(metricsAddress, nil)
 }
