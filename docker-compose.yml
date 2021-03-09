@@ -9,10 +9,12 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=99999d"
+    restart: unless-stopped
     ports:
       - 9090:9090
   starlink-exporter:
     build: .
     image: jrcichra/starlink-exporter
+    restart: unless-stopped
     ports:
       - 2112:2112

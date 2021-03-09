@@ -94,8 +94,9 @@ var (
 
 	statusInterval  = time.Duration(4) * time.Minute
 	pingInterval    = time.Duration(1) * time.Minute
-	historyInterval = time.Duration(10) * time.Second
+	historyInterval = time.Duration(20) * time.Second
 	retryInterval   = time.Duration(2) * time.Second
+	resetInterval   = time.Duration(1) * time.Hour
 )
 
 func init() {
@@ -106,6 +107,13 @@ func init() {
 	flag.DurationVar(&pingInterval, "ping_interval", pingInterval, "Ping metrics polling interval.")
 	flag.DurationVar(&historyInterval, "history_duration", historyInterval, "Polls history this often, then replays it. This means the current metrics from history will be delayed by this amount because of the history replay, but allows us to poll less frequently. Dishy DVR!")
 	flag.Parse()
+}
+
+func resetTimer() {
+	go func() {
+		time.Sleep(resetInterval)
+		panic("Intentional program death, to keep dishy alive. The restart=unless-stopped should restart us")
+	}()
 }
 
 func min(a, b int) int {
@@ -396,6 +404,7 @@ func main() {
 		fmt.Println("[dish] cannot run without dish, exiting... are you running from the starlink network?")
 		os.Exit(1)
 	}
+	resetTimer()
 	recordDishMetrics()
 	if wifiOk {
 		recordWifiMetrics()
